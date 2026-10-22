@@ -1,0 +1,419 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Prompt Studio Kusisa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: cabecera corta, formulario a la izquierda y prompt maestro a la derecha; en celular se apilan. */
+:root{
+  --bg:#fbf4f2; --surface:#ffffff; --ink:#2b1620; --muted:#7a6068; --line:#ecd9d6;
+  --accent:#b8325e; --accent-ink:#ffffff; --soft:#f6e3e3; --code-bg:#2b1620; --code-ink:#f7e8e4; --ok:#2f7d5b;
+  --f-display:'Bricolage Grotesque','Trebuchet MS',sans-serif;
+  --f-body:'Figtree',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1c1015; --surface:#281821; --ink:#f7e8e4; --muted:#b99ca4; --line:#44283a;
+  --accent:#e2688f; --accent-ink:#1c1015; --soft:#3a2030; --code-bg:#140a0e; --code-ink:#f7e8e4; --ok:#6cc79c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1c1015; --surface:#281821; --ink:#f7e8e4; --muted:#b99ca4; --line:#44283a;
+  --accent:#e2688f; --accent-ink:#1c1015; --soft:#3a2030; --code-bg:#140a0e; --code-ink:#f7e8e4; --ok:#6cc79c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto}
+header{margin-bottom:24px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,5vw,44px);line-height:1.05;margin:6px 0 8px;text-wrap:balance;letter-spacing:-.02em}
+header p{margin:0;max-width:60ch;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:20px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+h2{font-family:var(--f-display);font-size:20px;margin:0 0 4px}
+.hint{color:var(--muted);font-size:14px;margin:0 0 16px}
+.field{margin-bottom:16px;min-width:0}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+label small{font-weight:400;color:var(--muted)}
+.req{color:var(--accent)}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input.bad{border-color:var(--accent);background:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font:inherit;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.err{color:var(--accent);font-size:13px;margin:-8px 0 12px;min-height:0}
+.go{width:100%;font:inherit;font-weight:600;font-size:16px;background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:14px;cursor:pointer}
+.go:hover{filter:brightness(1.06)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.actions .go{flex:1 1 200px;width:auto}
+.clear{flex:0 1 auto;font:inherit;font-weight:600;font-size:15px;color:var(--accent);background:transparent;border:2px solid var(--accent);border-radius:12px;padding:12px 18px;cursor:pointer}
+.clear:hover{background:var(--soft)}
+.out-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.copy{font:inherit;font-weight:600;font-size:14px;background:var(--ink);color:var(--bg);border:0;border-radius:10px;padding:9px 16px;cursor:pointer}
+.copy.done{background:var(--ok);color:#fff}
+pre{margin:0;background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:16px;font-family:var(--f-mono);font-size:12.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;max-height:560px;overflow:auto;user-select:all}
+.slots{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px;padding:0;list-style:none}
+.slots li{font-size:12px;background:var(--soft);border-radius:6px;padding:3px 8px;color:var(--ink)}
+.steps{margin:16px 0 0;padding-left:20px;color:var(--muted);font-size:14px}
+.steps li{margin-bottom:4px}
+.tabs{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:10px;margin-bottom:14px}
+.tab{flex:1;font:inherit;font-weight:600;font-size:14px;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:8px 10px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink)}
+.ind{display:flex;flex-direction:column;gap:10px;max-height:560px;overflow:auto}
+.item{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;min-width:0}
+.item h3{margin:0;font-family:var(--f-display);font-size:15px}
+.item p{margin:0;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.item button{justify-self:start;font:inherit;font-weight:600;font-size:13px;background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:7px 12px;cursor:pointer}
+.item button.done{background:var(--ok);color:#fff}
+.tip{font-size:13px;color:var(--muted);margin:0 0 12px}
+.toast{color:var(--ok);font-size:13px;min-height:18px;margin-top:8px}
+@media(prefers-reduced-motion:no-preference){.copy,.go,.chip{transition:filter .15s,background .15s,color .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Kusisa · Herramienta creativa</div>
+    <h1>Prompt Studio | Cliparts Premium</h1>
+    <p>Completa los datos de tu evento y obtén un prompt maestro para generar los 10 cliparts de tu invitación digital.</p>
+  </header>
+
+  <div class="grid">
+    <form class="card" id="form" novalidate>
+      <h2>Personaliza tu solicitud</h2>
+      <p class="hint">Los campos con * son obligatorios. Los opcionales solo se incluyen si los rellenas.</p>
+
+      <div class="field">
+        <label for="evento">Tipo de evento <span class="req">*</span></label>
+        <input id="evento" autocomplete="off" placeholder="Ej: boda, graduación, cumpleaños, baby shower">
+        <div class="chips" data-for="evento">
+          <button type="button" class="chip">boda</button><button type="button" class="chip">graduación</button>
+          <button type="button" class="chip">cumpleaños</button><button type="button" class="chip">baby shower</button>
+          <button type="button" class="chip">quinceañero</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="tematica">Temática <span class="req">*</span></label>
+        <input id="tematica" autocomplete="off" placeholder="Ej: elegante disco plateado">
+        <div class="chips" data-for="tematica">
+          <button type="button" class="chip">elegante disco plateado</button><button type="button" class="chip">boho floral</button>
+          <button type="button" class="chip">romántico vintage</button><button type="button" class="chip">minimalista moderno</button>
+          <button type="button" class="chip">jardín encantado</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="estilo">Estilo visual <small>(opcional)</small></label>
+        <input id="estilo" autocomplete="off" placeholder="Ej: 3D brillante elegante">
+        <div class="chips" data-for="estilo">
+          <button type="button" class="chip">3D brillante elegante</button><button type="button" class="chip">acuarela suave</button>
+          <button type="button" class="chip">3D chunky</button><button type="button" class="chip">línea fina dorada</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="paleta">Paleta de colores <small>(opcional)</small></label>
+        <input id="paleta" autocomplete="off" placeholder="Ej: plateado con azul noche, o códigos HEX como #C8A2C8, #A8D5BA">
+        <div class="chips" data-for="paleta">
+          <button type="button" class="chip">rosa empolvado, beige y verde salvia</button><button type="button" class="chip">plateado con azul noche</button>
+          <button type="button" class="chip">dorado y blanco marfil</button><button type="button" class="chip">terracota y crema</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="vestimenta">Código de vestimenta <small>(opcional)</small></label>
+        <input id="vestimenta" autocomplete="off" placeholder="Ej: formal, etiqueta rigurosa, cóctel">
+        <div class="chips" data-for="vestimenta"></div>
+      </div>
+
+      <div class="field">
+        <label for="extra">Agregar elemento personalizado <small>(opcional)</small></label>
+        <textarea id="extra" placeholder="Describe otros elementos que deseas incluir. Ej: personajes con toga, el birrete, Class 2026, niño y niña"></textarea>
+        <div class="chips" data-for="extra"></div>
+      </div>
+
+      <div class="err" id="err" role="alert"></div>
+      <div class="actions">
+        <button class="go" type="submit">Generar mi prompt maestro</button>
+        <button type="button" id="clear" class="clear">Limpiar formulario</button>
+      </div>
+    </form>
+
+    <section class="card" aria-live="polite">
+      <div class="out-head">
+        <div>
+          <h2>Tu prompt maestro</h2>
+          <p class="hint" style="margin:0">Pégalo en tu IA generadora de imágenes para recibir los 10 cliparts.</p>
+        </div>
+      </div>
+      <div class="item" style="margin-bottom:16px">
+        <h3>Observación: si es tu primera vez, envía esto antes</h3>
+        <p id="pre-msg">Te voy a entregar un prompt para generarme 10 elementos (imágenes) por separado. Una vez tengas el prompt, genera las imágenes una a una, sin juntarlas en una lámina.</p>
+        <button id="copy-pre" type="button">Copiar</button>
+      </div>
+      <ul class="slots" id="slots"></ul>
+      <div class="tabs" role="tablist">
+        <button class="tab" id="tab-uno" role="tab" aria-selected="true" type="button">Una tras otra</button>
+        <button class="tab" id="tab-ind" role="tab" aria-selected="false" type="button">10 separados</button>
+        <button class="tab" id="tab-lam" role="tab" aria-selected="false" type="button">Lámina de 10</button>
+      </div>
+      <p class="tip" id="tip">Un solo prompt que ordena a tu IA generar una imagen por cada elemento, una tras otra, sin detenerse.</p>
+      <pre id="out"></pre>
+      <pre id="outlam" hidden></pre>
+      <div class="ind" id="ind" hidden></div>
+      <button class="copy" id="copy" type="button" style="margin-top:12px;width:100%;padding:13px;font-size:15px">Copiar prompt</button>
+      <div class="toast" id="toast"></div>
+      <ol class="steps">
+        <li>En tu IA, elige un modelo con razonamiento (por ejemplo, el nivel "Alto").</li>
+        <li>Si es tu primera vez, envía el mensaje de la observación y espera a que confirme.</li>
+        <li>Pega tu prompt maestro. Si se detiene, escribe "continúa".</li>
+        <li>Descarga las imágenes y súbelas a Canva.</li>
+        <li>Recorta cada clipart, quítale el fondo y arma tu invitación web animada.</li>
+      </ol>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var ids=['evento','tematica','estilo','paleta','vestimenta','extra'];
+  var SAMPLE={evento:'graduación',tematica:'elegante disco plateado',estilo:'3D brillante elegante',paleta:'plateado con azul noche',extra:''};
+
+  // Elementos que cambian según el tipo de evento
+  var KINDS=[
+    {re:/boda|matrimonio|casamiento|nupcial/i, main:'dos anillos de boda entrelazados con una pequeña piedra brillante', chars:'una pareja de novios (novia con vestido y novio con traje) en estilo caricatura elegante', deco:'ramo de flores con cinta', dress:'un corbatín, una flor de solapa y unos zapatos de gala'},
+    {re:/gradua|promoci|egres/i, main:'un birrete de graduación con borla y un diploma enrollado con cinta', chars:'un niño y una niña con toga y birrete sosteniendo sus diplomas, en estilo caricatura elegante', deco:'confeti y estrellas brillantes', dress:'una corbata, una toga doblada y unos zapatos de gala'},
+    {re:/cumple|birthday/i, main:'un pastel de cumpleaños de varios pisos con velas', chars:'un niño y una niña celebrando con globos, en estilo caricatura elegante', deco:'globos, serpentinas y confeti', dress:'un sombrero de fiesta y un moño festivo'},
+    {re:/baby|bebé|bebe|bautizo|bautismo/i, main:'un biberón y un pequeño osito de peluche', chars:'un bebé tierno con pañal y gorrito, en estilo caricatura elegante', deco:'nubes, estrellas y lunas pequeñas', dress:'un gorrito de bebé y un babero'},
+    {re:/quince|xv|15 años/i, main:'una tiara con joyas y un zapatito de cristal', chars:'una quinceañera con vestido de gala, en estilo caricatura elegante', deco:'mariposas y flores delicadas', dress:'un par de guantes, un abanico y unos zapatos de gala'}
+  ];
+  var FALLBACK={main:'un objeto icónico y simbólico de este tipo de evento', chars:'personajes celebrando el evento, en estilo caricatura elegante', deco:'detalles decorativos como estrellas y flores', dress:'accesorios de vestimenta elegante'};
+
+  function kindOf(ev){for(var i=0;i<KINDS.length;i++){if(KINDS[i].re.test(ev))return KINDS[i]}return FALLBACK}
+  function v(id){return $(id).value.replace(/\s+/g,' ').trim()}
+
+  // Sugerencias por tipo de evento (mismo orden que KINDS) y generales
+  var SUG=[
+    {tematica:['romántico vintage','boho floral','jardín encantado','elegante minimalista','rústico campestre'],
+     estilo:['acuarela suave','línea fina dorada','ilustración delicada con relieve','3D brillante elegante'],
+     paleta:['rosa empolvado, beige y verde salvia','dorado y blanco marfil','terracota y crema','azul empolvado y plateado'],
+     extra:['novios en estilo caricatura','novios con ropa elegante','iniciales de los novios','anillos de boda','copas de brindis','paloma blanca','auto de novios']},
+    {tematica:['elegante disco plateado','clásica universitaria','fiesta de promoción','moderna con confeti'],
+     estilo:['3D brillante elegante','3D chunky','ilustración dorada','caricatura kawaii'],
+     paleta:['plateado con azul noche','negro y dorado','azul marino y blanco','guinda y dorado'],
+     extra:['personajes con toga y birrete','Class 2026','diploma enrollado','medalla','libros y lápiz']},
+    {tematica:['fiesta de globos','safari','unicornio','espacial','circo vintage'],
+     estilo:['3D chunky','acuarela alegre','caricatura divertida','papel recortado'],
+     paleta:['pastel multicolor','azul y amarillo','rosa y dorado','arcoíris suave'],
+     extra:['niño y niña celebrando','globos con número','pastel con velas','piñata','confeti','sombrero de fiesta']},
+    {tematica:['osito de peluche','nubes y estrellas','safari bebé','luna y estrellas'],
+     estilo:['acuarela suave','3D tierno','ilustración pastel'],
+     paleta:['celeste y blanco','rosa pastel','verde menta y crema','beige y gris suave'],
+     extra:['bebé tierno en estilo caricatura','cuna','chupete','zapatitos de bebé','cigüeña','sonajero']},
+    {tematica:['princesa de cuento','jardín de rosas','glamour dorado','mariposas encantadas'],
+     estilo:['3D brillante elegante','acuarela delicada','línea fina dorada'],
+     paleta:['rosa y dorado','lila y plateado','rojo y negro','azul rey y dorado'],
+     extra:['quinceañera con vestido de gala','corona','vestido de gala','número 15','zapatos de cristal','carruaje']}
+  ];
+  var GEN={
+    tematica:['elegante disco plateado','boho floral','romántico vintage','minimalista moderno','jardín encantado'],
+    estilo:['3D brillante elegante','acuarela suave','3D chunky','línea fina dorada'],
+    paleta:['rosa empolvado, beige y verde salvia','plateado con azul noche','dorado y blanco marfil','terracota y crema'],
+    extra:['globos','confeti','flores','estrellas brillantes']
+  };
+  // Estilo y paleta según la temática elegida (se prueba en orden)
+  var TEM=[
+    {re:/globo|circo|confeti/i, estilo:['3D chunky','caricatura divertida','papel recortado'], paleta:['pastel multicolor','rojo, azul y amarillo','rosa y turquesa','arcoíris suave']},
+    {re:/vintage|rom[aá]ntic/i, estilo:['acuarela suave','ilustración vintage con textura de papel','línea fina con detalles florales','óleo delicado'], paleta:['rosa empolvado, crema y verde salvia','borgoña y marfil','lavanda y gris perla','durazno y beige']},
+    {re:/boho|bohem/i, estilo:['acuarela con texturas naturales','dibujo a mano con pasto de la pampa','ilustración orgánica terrosa'], paleta:['terracota, beige y verde oliva','mostaza y crema','rosa palo y marrón claro','arena y salvia']},
+    {re:/jard[ií]n|flor|rosa/i, estilo:['acuarela botánica','ilustración realista delicada','3D suave con relieve'], paleta:['rosa, verde hoja y blanco','lila y verde menta','durazno y verde salvia','amarillo suave y blanco']},
+    {re:/minimal|moderno/i, estilo:['línea fina minimalista','formas planas limpias','ilustración sutil monocromática'], paleta:['blanco, negro y dorado','beige y gris topo','verde oliva y crema','azul grisáceo y blanco']},
+    {re:/r[uú]stic|campest/i, estilo:['acuarela rústica','dibujo a mano con textura de papel kraft','ilustración con detalles de madera'], paleta:['marrón, beige y verde bosque','crema y terracota','lino y verde salvia','mostaza y marrón']},
+    {re:/plateado|disco|glitter/i, estilo:['3D brillante elegante','metálico con destellos','3D chunky brillante'], paleta:['plateado con azul noche','plateado y negro','plateado y rosa','plateado y champán']},
+    {re:/universit|cl[aá]sic|promoci/i, estilo:['ilustración clásica con detalles dorados','3D elegante','caricatura kawaii'], paleta:['azul marino y dorado','guinda y dorado','negro y dorado','verde bosque y crema']},
+    {re:/unicornio|princesa|cuento|encantad/i, estilo:['3D brillante','acuarela con brillos','ilustración de cuento de hadas'], paleta:['rosa, lila y dorado','lila y plateado','celeste pastel y rosa','turquesa y dorado']},
+    {re:/espacial|luna|estrella|nube/i, estilo:['3D chunky','acuarela nocturna','ilustración con destellos'], paleta:['azul noche y dorado','celeste y blanco','morado y plateado','gris perla y amarillo suave']},
+    {re:/safari|osito|animal/i, estilo:['acuarela tierna','3D tierno','ilustración pastel'], paleta:['beige, verde salvia y mostaza suave','marrón claro y crema','celeste y arena','verde menta y durazno']},
+    {re:/mariposa/i, estilo:['acuarela delicada','3D suave con brillos','línea fina dorada'], paleta:['lila y rosa','turquesa y dorado','amarillo y blanco','azul cielo y rosa pastel']}
+  ];
+  var VES=[
+    ['formal','etiqueta rigurosa','elegante sport','cóctel','traje oscuro y vestido largo'],
+    ['formal','etiqueta','elegante sport','semi formal','toga y birrete'],
+    ['casual','colorido','temático de disfraz','elegante casual'],
+    ['casual cómodo','colores pastel','blanco y celeste','smart casual'],
+    ['etiqueta rigurosa','formal largo','elegante en tonos pastel','gala']
+  ];
+  var VESG=['formal','etiqueta rigurosa','elegante sport','semi formal','casual'];
+  var lastKey=null;
+  function renderChips(){
+    var ev=v('evento'),key=-1;
+    for(var i=0;i<KINDS.length;i++){if(KINDS[i].re.test(ev)){key=i;break}}
+    var tem=v('tematica'),ti=-1;
+    for(var j=0;j<TEM.length;j++){if(TEM[j].re.test(tem)){ti=j;break}}
+    var sig=key+'|'+ti;
+    if(sig===lastKey)return;
+    lastKey=sig;
+    var set=Object.assign({},key>=0?SUG[key]:GEN);
+    if(ti>=0){set.estilo=TEM[ti].estilo;set.paleta=TEM[ti].paleta}
+    set.vestimenta=key>=0?VES[key]:VESG;
+    ['tematica','estilo','paleta','vestimenta','extra'].forEach(function(f){
+      var box=document.querySelector('.chips[data-for="'+f+'"]');
+      box.innerHTML='';
+      set[f].forEach(function(t){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=t;box.appendChild(b)});
+    });
+  }
+
+  function build(d){
+    var k=kindOf(d.evento);
+    var estilo=d.estilo||'ilustración premium con acabado limpio y profesional';
+    var hex=/#[0-9a-f]{3,8}\b/i.test(d.paleta||'');
+    var paleta=d.paleta?('Paleta de colores: '+d.paleta+'. Usa solo esta paleta en todas las imágenes.'+(hex?' Los códigos que empiezan con # son colores HEX: respétalos lo más fielmente posible.':'')):'Usa una paleta de colores coherente y armoniosa con la temática en todas las imágenes.';
+    var slots=[
+      ['Sobre cerrado','un sobre cerrado con un sello de cera decorativo SIN letras, SIN iniciales y SIN texto (solo un relieve simple de un motivo de la temática, como una flor o una ramita), rectangular y horizontal con proporciones reales de sobre (más ancho que alto, aproximadamente 3:2), con la solapa triangular visible'],
+      ['Sobre abierto','un sobre abierto rectangular y horizontal, con proporciones reales de sobre (más ancho que alto), la solapa levantada y el interior vacío, sin carta ni papel asomando'],
+      ['Marco en blanco','un marco decorativo vertical con el centro completamente en blanco para escribir texto'],
+      ['Guirnalda','una guirnalda o ornamento de esquina con detalles de la temática'],
+      ['Calendario y reloj','un calendario y un reloj juntos, sin números ni letras'],
+      ['Ubicación','un icono de marcador de mapa, sin letras'],
+      ['Regalo','una caja de regalo con lazo grande'],
+      ['Código de vestimenta',d.vestimenta?('un clipart alusivo al código de vestimenta "'+d.vestimenta+'", usando prendas y accesorios, sin personas'):('un clipart alusivo al código de vestimenta: '+k.dress+', sin personas')],
+      ['Elemento principal',k.main],
+      ['Decoración final',d.extra?('un clipart de los elementos personalizados, solo en esta imagen: '+d.extra):k.deco]
+    ];
+    var lines=slots.map(function(s,i){return (i+1)+'. '+s[1].charAt(0).toUpperCase()+s[1].slice(1)+'.'});
+    var txt=
+'Actúa como ilustrador profesional de cliparts para invitaciones digitales.\n\n'+
+'Genera 10 imágenes para una invitación de '+d.evento+'.\n\n'+
+'MODO DE GENERACIÓN OBLIGATORIO: Genera TODAS las imágenes solicitadas de forma individual y consecutiva. Debes realizar una generación independiente por cada elemento de la lista, siguiendo el orden indicado: primero la imagen 1, luego la imagen 2, después la imagen 3, y así sucesivamente hasta completar la última. No te detengas después de generar la primera imagen. No agrupes varios elementos en una sola imagen. No crees collages, cuadrículas, láminas, composiciones múltiples ni contact sheets. Cada generación debe contener únicamente el elemento correspondiente a ese número. Mantén exactamente el mismo estilo visual, paleta de colores, iluminación, acabado y nivel de detalle en toda la serie. Continúa automáticamente hasta completar el 100 % de la lista, sin pedirme que escriba "continúa" entre una imagen y otra.\n\n'+
+'Temática: '+d.tematica+'.\n'+
+'Estilo visual: '+estilo+'.\n'+
+paleta+'\n'+
+'\nLas 10 imágenes deben ser:\n'+lines.join('\n')+'\n\n'+
+'Reglas para todas las imágenes:\n'+
+'- Cada clipart es una imagen separada, centrada y completa, sin recortes.\n'+
+'- NO juntes los cliparts en una sola lámina, collage, cuadrícula ni set: genera 10 imágenes distintas.\n'+
+'- Fondo liso blanco puro, sin sombras de fondo, sin degradados ni cuadros alrededor (para quitar el fondo después en Canva).\n'+
+'- Sin texto, sin letras y sin números, salvo que lo pida un elemento personalizado.\n'+
+'- Mismo estilo, misma iluminación y misma paleta en las 10 para que combinen.\n'+
+'- Lienzo cuadrado 1:1, pero cada clipart conserva sus proporciones reales (un sobre es rectangular y horizontal): no lo estires para llenar el cuadro y deja margen blanco alrededor.\n'+
+'- Alta resolución, bordes limpios y bien definidos.\n'+
+'- No me hagas preguntas ni pidas confirmación entre imágenes: empieza a generar de inmediato.';
+    var ctx='Para una invitación de '+d.evento+'. Temática: '+d.tematica+'. Estilo visual: '+estilo+'. '+paleta;
+    var rules='Un solo clipart centrado y completo, respetando sus proporciones reales (no lo estires para llenar el cuadro) y con margen blanco alrededor, sobre fondo liso blanco puro, sin sombras de fondo, sin texto, letras ni iniciales (tampoco en sellos o medallones), alta resolución, lienzo cuadrado 1:1.';
+    var ind=slots.map(function(s,i){return {n:(i+1)+'. '+s[0],t:'Genera una imagen: '+s[1]+'. '+ctx+' '+rules}});
+    var lam=
+'Actúa como ilustrador profesional de cliparts para invitaciones digitales.\n\n'+
+'Genera UNA sola imagen horizontal (lámina de cliparts) para una invitación de '+d.evento+', con exactamente 10 cliparts separados, ordenados en 2 filas de 5.\n\n'+
+'Temática: '+d.tematica+'.\n'+
+'Estilo visual: '+estilo+'.\n'+
+paleta+'\n'+
+'\nLos 10 cliparts, en este orden:\n'+lines.join('\n')+'\n\n'+
+'Reglas:\n'+
+'- Una sola imagen con los 10 cliparts, todos del mismo tamaño aproximado.\n'+
+'- Deja mucho espacio blanco entre cada clipart. Ninguno debe tocarse ni superponerse con otro, para poder recortarlos después.\n'+
+'- Fondo liso blanco puro, sin sombras de fondo, sin degradados ni cuadros alrededor.\n'+
+'- Sin texto, sin letras y sin números, salvo que lo pida un elemento personalizado.\n'+
+'- Mismo estilo, misma iluminación y misma paleta en los 10 para que combinen.\n'+
+'- Cada clipart conserva sus proporciones reales (un sobre es rectangular y horizontal) y no se estira.\n'+
+'- Alta resolución y bordes limpios y bien definidos.\n'+
+'- No me hagas preguntas: genera la imagen de inmediato.';
+    return {txt:txt,lam:lam,slots:slots,ind:ind};
+  }
+
+  function render(d){
+    var r=build(d);
+    $('out').textContent=r.txt;
+    $('outlam').textContent=r.lam;
+    $('slots').innerHTML='';
+    r.slots.forEach(function(s,i){var li=document.createElement('li');li.textContent=(i+1)+'. '+s[0];$('slots').appendChild(li)});
+    $('ind').innerHTML='';
+    r.ind.forEach(function(it){
+      var box=document.createElement('div');box.className='item';
+      var h=document.createElement('h3');h.textContent=it.n;
+      var p=document.createElement('p');p.textContent=it.t;
+      var b=document.createElement('button');b.type='button';b.textContent='Copiar';
+      b.addEventListener('click',function(){
+        function ok(){b.textContent='¡Copiado!';b.classList.add('done');setTimeout(function(){b.textContent='Copiar';b.classList.remove('done')},1800)}
+        function fb(){var rg=document.createRange();rg.selectNodeContents(p);var s=getSelection();s.removeAllRanges();s.addRange(rg);$('toast').textContent='Texto seleccionado. Cópialo con Ctrl+C o mantén presionado en el celular.'}
+        if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(it.t).then(ok,fb)}else{fb()}
+      });
+      box.appendChild(h);box.appendChild(p);box.appendChild(b);$('ind').appendChild(box);
+    });
+  }
+  var cur='uno';
+  var TIPS={
+    lam:'Muchas IA generan una imagen por respuesta. Este prompt pide los 10 cliparts en una sola lámina; luego los recortas en Canva.',
+    ind:'Pega cada prompt en un mensaje nuevo, en el mismo chat, para que mantengan el mismo estilo. Tendrás 10 imágenes separadas.',
+    uno:'Un solo prompt que ordena a tu IA generar una imagen por cada elemento, una tras otra, sin detenerse. Si se detiene, escribe "continúa" o usa la pestaña 10 separados.'
+  };
+  function setTab(t){
+    cur=t;
+    $('outlam').hidden=t!=='lam';$('out').hidden=t!=='uno';$('ind').hidden=t!=='ind';$('copy').hidden=t==='ind';
+    ['lam','ind','uno'].forEach(function(k){$('tab-'+k).setAttribute('aria-selected',k===t?'true':'false')});
+    $('tip').textContent=TIPS[t];
+    $('toast').textContent='';
+  }
+  $('tab-lam').addEventListener('click',function(){setTab('lam')});
+  $('tab-uno').addEventListener('click',function(){setTab('uno')});
+  $('tab-ind').addEventListener('click',function(){setTab('ind')});
+
+  function read(){var d={};ids.forEach(function(i){d[i]=v(i)});return d}
+
+  $('form').addEventListener('submit',function(e){
+    e.preventDefault();
+    var d=read(),bad=[];
+    ['evento','tematica'].forEach(function(i){var empty=!d[i];$(i).classList.toggle('bad',empty);if(empty)bad.push(i)});
+    $('err').textContent=bad.length?'Completa el tipo de evento y la temática para generar el prompt.':'';
+    if(bad.length)return;
+    render(d);
+    $('toast').textContent='';
+    $('copy').scrollIntoView&&window.matchMedia('(max-width:820px)').matches&&$('copy').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+
+  $('copy-pre').addEventListener('click',function(){
+    var b=$('copy-pre'),p=$('pre-msg');
+    function ok(){b.textContent='¡Copiado!';b.classList.add('done');setTimeout(function(){b.textContent='Copiar';b.classList.remove('done')},1800)}
+    function fb(){var rg=document.createRange();rg.selectNodeContents(p);var s=getSelection();s.removeAllRanges();s.addRange(rg);$('toast').textContent='Texto seleccionado. Cópialo con Ctrl+C o mantén presionado en el celular.'}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(p.textContent).then(ok,fb)}else{fb()}
+  });
+
+  $('clear').addEventListener('click',function(){
+    ids.forEach(function(i){$(i).value='';$(i).classList.remove('bad')});
+    $('err').textContent='';
+    try{localStorage.removeItem('kusisa-prompt-studio')}catch(x){}
+    renderChips();$('evento').focus();
+  });
+
+  document.querySelectorAll('.chips').forEach(function(box){
+    box.addEventListener('click',function(e){
+      if(!e.target.classList.contains('chip'))return;
+      var f=$(box.dataset.for),t=e.target.textContent;
+      if(f.id==='extra'&&f.value.trim()){f.value=f.value.replace(/[,\s]+$/,'')+', '+t}else{f.value=t}
+      f.classList.remove('bad');f.dispatchEvent(new Event('input'));
+    });
+  });
+
+  $('copy').addEventListener('click',function(){
+    var el=$(cur==='lam'?'outlam':'out'),text=el.textContent,btn=$('copy');
+    function ok(){btn.textContent='¡Copiado!';btn.classList.add('done');$('toast').textContent='Listo, ya puedes pegarlo en tu IA.';
+      setTimeout(function(){btn.textContent='Copiar prompt';btn.classList.remove('done')},2000)}
+    function fallback(){
+      var r=document.createRange();r.selectNodeContents(el);var s=getSelection();s.removeAllRanges();s.addRange(r);
+      $('toast').textContent='Texto seleccionado. Presiona Ctrl+C (o mantén presionado en el celular) para copiar.';
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok,fallback)}else{fallback()}
+  });
+
+  // Estado inicial: formulario vacío y mensaje de espera
+  try{localStorage.removeItem('kusisa-prompt-studio')}catch(x){}
+  renderChips();
+  $('evento').addEventListener('input',renderChips);
+  $('tematica').addEventListener('input',renderChips);
+  var wait='Completa el tipo de evento y la temática, y pulsa "Generar mi prompt maestro". Tu prompt aparecerá aquí.';
+  $('outlam').textContent=wait;$('out').textContent=wait;
+  var emp=document.createElement('p');emp.className='tip';emp.textContent=wait;$('ind').appendChild(emp);
+})();
+</script>
+
+</body></html>
